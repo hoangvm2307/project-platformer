@@ -4,9 +4,17 @@ using Zenject;
 
 public class GameInstaller : MonoInstaller
 {
+    [Header("Prefabs")]
     [SerializeField] private GameObject _playerPrefab;
+    [SerializeField] private GameObject _arrowPrefab;
+
+    [Header("Spawning")]
     [SerializeField] private Transform _playerSpawnPoint;
+
+    [Header("Settings")]
     [SerializeField] private PlayerSettings _playerSettings;
+
+    [Header("UI")]
     [SerializeField] private UIManager _uiManager;
 
     public override void InstallBindings()
@@ -17,6 +25,7 @@ public class GameInstaller : MonoInstaller
         Container.DeclareSignal<EnemyDiedSignal>();
         Container.DeclareSignal<RestartGameSignal>();
         
+        Container.Bind<GameObject>().WithId("ArrowPrefab").FromInstance(_arrowPrefab);
         Container.Bind<PlayerSettings>().FromInstance(_playerSettings).AsSingle();
         Container.Bind<Camera>().FromComponentInHierarchy().AsSingle();
 

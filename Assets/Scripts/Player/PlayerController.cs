@@ -20,6 +20,8 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
     private GameObject _ghost;
     private float _screenWidth;
 
+    public Transform Transform => _transform;
+
     public PlayerController(
         Rigidbody2D rigidbody,
         Transform transform,
