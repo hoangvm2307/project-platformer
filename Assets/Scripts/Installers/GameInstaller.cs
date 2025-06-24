@@ -24,6 +24,9 @@ public class GameInstaller : MonoInstaller
         Container.DeclareSignal<PlayerDiedSignal>();
         Container.DeclareSignal<EnemyDiedSignal>();
         Container.DeclareSignal<RestartGameSignal>();
+        Container.DeclareSignal<EnemySpawnedSignal>();
+        Container.DeclareSignal<PlayerLaunchSignal>();
+        Container.DeclareSignal<GameStateChangedSignal>();
         
         Container.Bind<GameObject>().WithId("ArrowPrefab").FromInstance(_arrowPrefab);
         Container.Bind<PlayerSettings>().FromInstance(_playerSettings).AsSingle();

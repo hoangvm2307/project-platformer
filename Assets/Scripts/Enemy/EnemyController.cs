@@ -9,6 +9,15 @@ public class EnemyController : MonoBehaviour, IDamageable
 
     private bool _isDead = false;
     private SignalBus _signalBus;
+    [Inject]
+    public void Construct(SignalBus signalBus)
+    {
+        _signalBus = signalBus;
+    }
+    private void Start()
+    {
+        _signalBus.Fire<EnemySpawnedSignal>();
+    }
     public void TakeHit(Collision2D collision)
     {
         float impactVelocity = collision.relativeVelocity.magnitude;
@@ -26,7 +35,7 @@ public class EnemyController : MonoBehaviour, IDamageable
         if (_isDead) return;
         _isDead = true;
         _signalBus.Fire<EnemyDiedSignal>();
-        
+
         GetComponent<Collider2D>().enabled = false;
 
         Sequence deathSequence = DOTween.Sequence();

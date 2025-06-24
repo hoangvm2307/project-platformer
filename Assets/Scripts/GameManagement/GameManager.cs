@@ -25,8 +25,7 @@ namespace GameManagement
             _signalBus.Subscribe<PlayerDiedSignal>(OnPlayerDied);
             _signalBus.Subscribe<EnemyDiedSignal>(OnEnemyDied);
             _signalBus.Subscribe<RestartGameSignal>(RestartGame);
-
-            _enemyCount = UnityEngine.Object.FindObjectsOfType<EnemyController>().Length;
+            _signalBus.Subscribe<EnemySpawnedSignal>(OnEnemySpawned);
 
             CurrentState = GameState.Playing;
             Debug.Log($"Game started with {_enemyCount} enemies.");
@@ -35,24 +34,17 @@ namespace GameManagement
         private void OnPlayerDied()
         {
             if (CurrentState != GameState.Playing) return;
-
-            CurrentState = GameState.Lose;
             Debug.Log("Game Over!");
-            _uiManager.ShowLosePanel();
+            SetState(GameState.Lose);
         }
 
         private void OnEnemyDied()
         {
-            if (CurrentState != GameState.Playing) return;
-
             _enemyCount--;
-            Debug.Log($"An enemy died. Remaining: {_enemyCount}");
-
             if (_enemyCount <= 0)
             {
-                CurrentState = GameState.Win;
                 Debug.Log("You Win!");
-                _uiManager.ShowWinPanel();
+                SetState(GameState.Win);
             }
         }
 
@@ -67,6 +59,17 @@ namespace GameManagement
             _signalBus.Unsubscribe<PlayerDiedSignal>(OnPlayerDied);
             _signalBus.Unsubscribe<EnemyDiedSignal>(OnEnemyDied);
             _signalBus.Unsubscribe<RestartGameSignal>(RestartGame);
+        }
+        private void OnEnemySpawned()
+        {
+            _enemyCount++;
+            Debug.Log($"An enemy has spawned. Total: {_enemyCount}");
+        }
+        private void SetState(GameState newState)
+        {
+            if (CurrentState == newState) return;
+            CurrentState = newState;
+            _signalBus.Fire(new GameStateChangedSignal { NewState = newState });
         }
     }
 }

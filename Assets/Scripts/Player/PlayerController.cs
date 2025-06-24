@@ -43,19 +43,23 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
     public void Initialize()
     {
         _collisionHandler.OnTookHardImpact += HandleHardImpact;
- 
+        _signalBus.Subscribe<PlayerLaunchSignal>(OnPlayerLaunch);
         float screenHeight = _camera.orthographicSize * 2;
         _screenWidth = screenHeight * _camera.aspect;
- 
+
         _ghost = new GameObject("PlayerGhost");
         var ghostRenderer = _ghost.AddComponent<SpriteRenderer>();
         ghostRenderer.sprite = _spriteRenderer.sprite;
         ghostRenderer.sortingLayerID = _spriteRenderer.sortingLayerID;
-        ghostRenderer.sortingOrder = _spriteRenderer.sortingOrder -1;
+        ghostRenderer.sortingOrder = _spriteRenderer.sortingOrder - 1;
         _ghost.SetActive(false);
- 
+
         _spriteRenderer.color = _settings.PlayerColor;
         ghostRenderer.color = _settings.PlayerColor;
+    }
+    private void OnPlayerLaunch(PlayerLaunchSignal signal)
+    {
+        Launch(signal.Force);
     }
 
     public void Launch(Vector2 force)
@@ -135,13 +139,13 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
         {
             _ghost.SetActive(false);
         }
- 
+
         if (_ghost.activeSelf)
         {
             _ghost.transform.rotation = _transform.rotation;
             _ghost.transform.localScale = _transform.localScale;
         }
- 
+
         if (_transform.position.x + playerWidth < leftBound)
         {
             _transform.position = new Vector3(_transform.position.x + _screenWidth, _transform.position.y, _transform.position.z);
@@ -167,6 +171,7 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
     public void Dispose()
     {
         _collisionHandler.OnTookHardImpact -= HandleHardImpact;
+        _signalBus.TryUnsubscribe<PlayerLaunchSignal>(OnPlayerLaunch); 
         GameObject.Destroy(_ghost);
     }
 }

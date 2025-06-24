@@ -2,10 +2,11 @@ using UnityEngine;
 using Zenject;
 using UnityEngine.InputSystem;
 using System;
+using GameManagement;
 public class InputManager : IInitializable, ITickable, IDisposable
 {
     private readonly GameObject _arrowPrefab;
-
+    private readonly SignalBus _signalBus;
     private readonly Camera _mainCamera;
     private readonly PlayerSettings _playerSettings;
     private readonly PlayerController _playerController;
@@ -22,12 +23,14 @@ public class InputManager : IInitializable, ITickable, IDisposable
         Camera mainCamera,
         PlayerSettings playerSettings,
         PlayerController playerController,
-        [Inject(Id = "ArrowPrefab")] GameObject arrowPrefab)
+        [Inject(Id = "ArrowPrefab")] GameObject arrowPrefab,
+        SignalBus signalBus)
     {
         _mainCamera = mainCamera;
         _playerSettings = playerSettings;
         _playerController = playerController;
         _arrowPrefab = arrowPrefab;
+        _signalBus = signalBus;
     }
     public void Initialize()
     {
@@ -89,7 +92,7 @@ public class InputManager : IInitializable, ITickable, IDisposable
 
         if (launchVector.sqrMagnitude > 0.1f)
         {
-            _playerController.Launch(launchVector * _playerSettings.LaunchForceMultiplier);
+            _signalBus.Fire(new PlayerLaunchSignal { Force = launchVector * _playerSettings.LaunchForceMultiplier });
         }
     }
 
