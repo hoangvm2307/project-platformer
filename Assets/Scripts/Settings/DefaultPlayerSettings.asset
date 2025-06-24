@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28d6b6ca8e05c2242b644fae24b6158a, type: 3}
   m_Name: DefaultPlayerSettings
   m_EditorClassIdentifier: 
-  LaunchForceMultiplier: 5
+  LaunchForceMultiplier: 10
   MinImpactVelocityToSurvive: 5
   PlayerColor: {r: 0, g: 0.70980394, b: 1, a: 1}
   ArrowMaxLength: 3

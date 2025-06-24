@@ -9,7 +9,7 @@ public class PlayerSettings : ScriptableObject
 
     [Header("Visuals")]
     public Color PlayerColor = Color.white;
-    public float ArrowMaxLength = 5f;
+    public float ArrowMaxLength = 3f;
     [Range(0, 1)]
     public float ArrowTailOpacity = 0.5f;
 

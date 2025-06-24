@@ -46,13 +46,14 @@ public class InputManager : IInitializable, ITickable, IDisposable
         {
             Vector2 currentMouseWorldPos = _mainCamera.ScreenToWorldPoint(_controls.Gameplay.Position.ReadValue<Vector2>());
             Vector2 launchVector = _dragStartPosition - currentMouseWorldPos;
+            Vector2 clampedLaunchVector = Vector2.ClampMagnitude(launchVector, _playerSettings.ArrowMaxLength);
 
             // Only show arrow if drag is significant
             if (launchVector.sqrMagnitude > 0.1f)
             {
                 _currentArrow.SetActive(true);
-                
-                float distance = launchVector.magnitude;
+
+                float distance = clampedLaunchVector.magnitude;
                 _arrowController.UpdateArrow(distance, _playerSettings.ArrowMaxLength, _playerSettings.ArrowTailOpacity);
 
                 float angle = Mathf.Atan2(launchVector.y, launchVector.x) * Mathf.Rad2Deg;
@@ -92,7 +93,8 @@ public class InputManager : IInitializable, ITickable, IDisposable
 
         if (launchVector.sqrMagnitude > 0.1f)
         {
-            _signalBus.Fire(new PlayerLaunchSignal { Force = launchVector * _playerSettings.LaunchForceMultiplier });
+            Vector2 clampedLaunchVector = Vector2.ClampMagnitude(launchVector, _playerSettings.ArrowMaxLength);
+            _signalBus.Fire(new PlayerLaunchSignal { Force = clampedLaunchVector * _playerSettings.LaunchForceMultiplier });
         }
     }
 
