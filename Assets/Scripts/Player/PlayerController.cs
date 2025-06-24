@@ -51,6 +51,9 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
         ghostRenderer.sortingLayerID = _spriteRenderer.sortingLayerID;
         ghostRenderer.sortingOrder = _spriteRenderer.sortingOrder -1;
         _ghost.SetActive(false);
+ 
+        _spriteRenderer.color = _settings.PlayerColor;
+        ghostRenderer.color = _settings.PlayerColor;
     }
 
     public void Launch(Vector2 force)

@@ -7,6 +7,9 @@ public class PlayerSettings : ScriptableObject
     public float LaunchForceMultiplier = 5f;
     public float MinImpactVelocityToSurvive = 5f;
 
+    [Header("Visuals")]
+    public Color PlayerColor = Color.white;
+
     [Header("Juiciness")]
     public float StretchScale = 1.5f;
     public float StretchDuration = 0.1f;
