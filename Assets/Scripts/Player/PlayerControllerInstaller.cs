@@ -7,6 +7,7 @@ public class PlayerControllerInstaller : Installer<PlayerControllerInstaller>
     {
         Container.Bind<Rigidbody2D>().FromComponentOnRoot().AsSingle();
         Container.Bind<Transform>().FromComponentOnRoot().AsSingle();
+        Container.Bind<SpriteRenderer>().FromComponentOnRoot().AsSingle();
         Container.Bind<PlayerCollisionHandler>().FromComponentOnRoot().AsSingle();
         Container.BindInterfacesAndSelfTo<PlayerController>().AsSingle();
     }

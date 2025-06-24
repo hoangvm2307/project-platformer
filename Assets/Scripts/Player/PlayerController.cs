@@ -10,30 +10,47 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
     private readonly Transform _transform;
     private readonly PlayerCollisionHandler _collisionHandler;
     private readonly PlayerSettings _settings;
+    private readonly SignalBus _signalBus;
+    private readonly Camera _camera;
+    private readonly SpriteRenderer _spriteRenderer;
 
     private Sequence _runningSequence;
-
-    private readonly SignalBus _signalBus;
     private bool _isDead = false;
     private bool _isGrounded = false;
+    private GameObject _ghost;
+    private float _screenWidth;
 
     public PlayerController(
         Rigidbody2D rigidbody,
         Transform transform,
         PlayerCollisionHandler collisionHandler,
         PlayerSettings settings,
-        SignalBus signalBus)
+        SignalBus signalBus,
+        Camera camera,
+        SpriteRenderer spriteRenderer)
     {
         _rigidbody = rigidbody;
         _transform = transform;
         _collisionHandler = collisionHandler;
         _settings = settings;
         _signalBus = signalBus;
+        _camera = camera;
+        _spriteRenderer = spriteRenderer;
     }
 
     public void Initialize()
     {
         _collisionHandler.OnTookHardImpact += HandleHardImpact;
+ 
+        float screenHeight = _camera.orthographicSize * 2;
+        _screenWidth = screenHeight * _camera.aspect;
+ 
+        _ghost = new GameObject("PlayerGhost");
+        var ghostRenderer = _ghost.AddComponent<SpriteRenderer>();
+        ghostRenderer.sprite = _spriteRenderer.sprite;
+        ghostRenderer.sortingLayerID = _spriteRenderer.sortingLayerID;
+        ghostRenderer.sortingOrder = _spriteRenderer.sortingOrder -1;
+        _ghost.SetActive(false);
     }
 
     public void Launch(Vector2 force)
@@ -66,10 +83,14 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
     public void LateTick()
     {
         CheckIfGrounded();
+        HandleScreenWrap();
     }
     private void CheckIfGrounded()
     {
         var hit = Physics2D.Raycast(_transform.position, Vector2.down, _settings.GroundCheckDistance, LayerMask.GetMask("Ground"));
+
+        Color rayColor = hit.collider != null ? Color.green : Color.red;
+        Debug.DrawRay(_transform.position, Vector2.down * _settings.GroundCheckDistance, rayColor);
 
         if (hit.collider != null)
         {
@@ -84,6 +105,48 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
             _isGrounded = false;
         }
     }
+
+    private void HandleScreenWrap()
+    {
+        var cameraPosition = _camera.transform.position;
+        var leftBound = cameraPosition.x - _screenWidth / 2;
+        var rightBound = cameraPosition.x + _screenWidth / 2;
+        var playerWidth = _spriteRenderer.bounds.size.x / 2;
+
+        bool isCrossingLeft = _transform.position.x - playerWidth < leftBound;
+        bool isCrossingRight = _transform.position.x + playerWidth > rightBound;
+
+        if (isCrossingLeft)
+        {
+            _ghost.SetActive(true);
+            _ghost.transform.position = new Vector3(_transform.position.x + _screenWidth, _transform.position.y, _transform.position.z);
+        }
+        else if (isCrossingRight)
+        {
+            _ghost.SetActive(true);
+            _ghost.transform.position = new Vector3(_transform.position.x - _screenWidth, _transform.position.y, _transform.position.z);
+        }
+        else
+        {
+            _ghost.SetActive(false);
+        }
+ 
+        if (_ghost.activeSelf)
+        {
+            _ghost.transform.rotation = _transform.rotation;
+            _ghost.transform.localScale = _transform.localScale;
+        }
+ 
+        if (_transform.position.x + playerWidth < leftBound)
+        {
+            _transform.position = new Vector3(_transform.position.x + _screenWidth, _transform.position.y, _transform.position.z);
+        }
+        else if (_transform.position.x - playerWidth > rightBound)
+        {
+            _transform.position = new Vector3(_transform.position.x - _screenWidth, _transform.position.y, _transform.position.z);
+        }
+    }
+
     public void Die()
     {
         if (_isDead) return;
@@ -99,5 +162,6 @@ public class PlayerController : IInitializable, ILateTickable, IDisposable
     public void Dispose()
     {
         _collisionHandler.OnTookHardImpact -= HandleHardImpact;
+        GameObject.Destroy(_ghost);
     }
 }
