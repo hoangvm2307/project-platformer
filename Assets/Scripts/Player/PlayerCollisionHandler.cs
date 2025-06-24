@@ -3,15 +3,13 @@ using UnityEngine;
 using Zenject;
 
 public class PlayerCollisionHandler : MonoBehaviour
-{
-    public Action OnLanded;
-    private PlayerController _playerController;
+{ 
+    public Action<Collision2D> OnTookHardImpact;
     private PlayerSettings _playerSettings;
 
     [Inject]
-    public void Construct(PlayerController playerController, PlayerSettings playerSettings)
+    public void Construct(PlayerSettings playerSettings)
     {
-        _playerController = playerController;
         _playerSettings = playerSettings;
     }
 
@@ -26,15 +24,12 @@ public class PlayerCollisionHandler : MonoBehaviour
 
             if (collision.relativeVelocity.magnitude < _playerSettings.MinImpactVelocityToSurvive)
             {
-                _playerController.Die();
+                OnTookHardImpact?.Invoke(collision);
             }
 
             return;
 
         }
-        if (collision.GetContact(0).normal.y > 0.5f)
-        {
-            OnLanded?.Invoke();
-        }
+
     }
 }

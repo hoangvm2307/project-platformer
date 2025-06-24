@@ -13,9 +13,11 @@ MonoBehaviour:
   m_Name: DefaultPlayerSettings
   m_EditorClassIdentifier: 
   LaunchForceMultiplier: 5
+  MinImpactVelocityToSurvive: 5
   StretchScale: 1.5
   StretchDuration: 0.1
   StretchBounceDuration: 0.4
+  GroundCheckDistance: 1
   LandSquashScale: {x: 1.25, y: 0.75}
   LandSquashDuration: 0.1
   LandElasticDuration: 0.3

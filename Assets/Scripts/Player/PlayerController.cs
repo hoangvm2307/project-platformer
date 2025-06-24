@@ -2,8 +2,9 @@ using UnityEngine;
 using Zenject;
 using DG.Tweening;
 using GameManagement;
+using System;
 
-public class PlayerController : IInitializable, ILateTickable
+public class PlayerController : IInitializable, ILateTickable, IDisposable
 {
     private readonly Rigidbody2D _rigidbody;
     private readonly Transform _transform;
@@ -14,6 +15,8 @@ public class PlayerController : IInitializable, ILateTickable
 
     private readonly SignalBus _signalBus;
     private bool _isDead = false;
+    private bool _isGrounded = false;
+
     public PlayerController(
         Rigidbody2D rigidbody,
         Transform transform,
@@ -30,7 +33,7 @@ public class PlayerController : IInitializable, ILateTickable
 
     public void Initialize()
     {
-        _collisionHandler.OnLanded += HandleLanding;
+        _collisionHandler.OnTookHardImpact += HandleHardImpact;
     }
 
     public void Launch(Vector2 force)
@@ -47,23 +50,40 @@ public class PlayerController : IInitializable, ILateTickable
         _runningSequence.Append(_transform.DOScaleX(_settings.StretchScale, _settings.StretchDuration))
                         .Append(_transform.DOScaleX(1f, _settings.StretchBounceDuration).SetEase(Ease.OutBounce));
     }
-
+    private void HandleHardImpact(Collision2D collision)
+    {
+        Die();
+    }
     private void HandleLanding()
     {
-        _runningSequence?.Kill();
-        _runningSequence = DOTween.Sequence();
-        _runningSequence.Append(_transform.DOScale(new Vector2(1.25f, 0.75f), 0.1f))
-                       .Append(_transform.DOScale(Vector2.one, 0.3f).SetEase(Ease.OutElastic));
+        Debug.Log("Player landed!");
+        // _runningSequence?.Kill();
+        // _runningSequence = DOTween.Sequence();
+        // _runningSequence.Append(_transform.DOScale(new Vector2(1.25f, 0.75f), 0.1f))
+        //                .Append(_transform.DOScale(Vector2.one, 0.3f).SetEase(Ease.OutElastic));
     }
 
     public void LateTick()
     {
-        if (_rigidbody.linearVelocity.sqrMagnitude < 0.5f)
+        CheckIfGrounded();
+    }
+    private void CheckIfGrounded()
+    {
+        var hit = Physics2D.Raycast(_transform.position, Vector2.down, _settings.GroundCheckDistance, LayerMask.GetMask("Ground"));
+
+        if (hit.collider != null)
         {
-            _transform.rotation = Quaternion.Slerp(_transform.rotation, Quaternion.identity, Time.deltaTime * 5f);
+            if (!_isGrounded)
+            {
+                _isGrounded = true;
+                HandleLanding();
+            }
+        }
+        else
+        {
+            _isGrounded = false;
         }
     }
-
     public void Die()
     {
         if (_isDead) return;
@@ -75,5 +95,9 @@ public class PlayerController : IInitializable, ILateTickable
         // TODO trong tương lai: Thêm hiệu ứng chết, hiện UI "Game Over", nút chơi lại...
         _signalBus.Fire<PlayerDiedSignal>();
         _rigidbody.gameObject.SetActive(false);
+    }
+    public void Dispose()
+    {
+        _collisionHandler.OnTookHardImpact -= HandleHardImpact;
     }
 }

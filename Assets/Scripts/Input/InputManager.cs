@@ -2,15 +2,15 @@ using UnityEngine;
 using Zenject;
 using UnityEngine.InputSystem;
 using System;
-public class InputManager : IInitializable, IDisposable
+public class InputManager : IInitializable, ITickable, IDisposable
 {
     private readonly Camera _mainCamera;
     private readonly PlayerSettings _playerSettings;
     private readonly PlayerController _playerController;
 
-    private Vector2 _dragStartPosition;
-    private bool _isDragging = false;
+    private Vector2 _dragStartPosition; 
     private PlayerControls _controls;
+    
 
     public InputManager(Camera mainCamera, PlayerSettings playerSettings, PlayerController playerController)
     {
@@ -27,21 +27,7 @@ public class InputManager : IInitializable, IDisposable
         _controls.Gameplay.Drag.canceled += OnDragEnd;
     }
     public void Tick()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            _isDragging = true;
-            _dragStartPosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        }
-
-        if (_isDragging && Input.GetMouseButtonUp(0))
-        {
-            _isDragging = false;
-            Vector2 endPosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 launchVector = _dragStartPosition - endPosition;
-
-            _playerController.Launch(launchVector * _playerSettings.LaunchForceMultiplier);
-        }
+    { 
     }
 
     private void OnDragStart(InputAction.CallbackContext context)
@@ -55,8 +41,11 @@ public class InputManager : IInitializable, IDisposable
         Vector2 screenPosition = _controls.Gameplay.Position.ReadValue<Vector2>();
         Vector2 endPosition = _mainCamera.ScreenToWorldPoint(screenPosition);
         Vector2 launchVector = _dragStartPosition - endPosition;
-
-        _playerController.Launch(launchVector * _playerSettings.LaunchForceMultiplier);
+ 
+        if (launchVector.sqrMagnitude > 0.01f)
+        {
+            _playerController.Launch(launchVector * _playerSettings.LaunchForceMultiplier);
+        }
     }
     
      public void Dispose()
